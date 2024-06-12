@@ -8,10 +8,10 @@ class pet:
     def __init__(self):
         # create a window
         self.window = tk.Tk()
-        self.img_len = 23
-        self.img_size_format = '500x500+{x}+0'
+        self.img_len = 6
+        self.img_size_format = '128x128+{x}+0'
         # pla ceholder image
-        self.walking_right = [tk.PhotoImage(file='giphy.gif', format='gif -index %i' % i) for i in range(self.img_len)]
+        self.walking_right = [tk.PhotoImage(file='cat_break.gif', format='gif -index %i' % i) for i in range(self.img_len)]
         self.frame_index = 0
         self.img = self.walking_right[self.frame_index]
 
@@ -101,8 +101,8 @@ def ttk_window():
 
 if __name__ == '__main__':
     # ttk_window()
-    height = tk.Tk().winfo_screenheight()
-    print(height)
-    weight = tk.Tk().winfo_screenwidth()
-    print(weight)
-    # pet()
+    # height = tk.Tk().winfo_screenheight()
+    # print(height)
+    # weight = tk.Tk().winfo_screenwidth()
+    # print(weight)
+    pet()

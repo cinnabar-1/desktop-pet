@@ -18,8 +18,10 @@ class pet:
     def __init__(self):
         self.window = tk.Tk()
         # code below generates string for each frame in gif
-        self.moveleft = [tk.PhotoImage(file=get_path('assets/duck-left.gif'), format='gif -index %i' % (i)) for i in range(10)]
-        self.moveright = [tk.PhotoImage(file=get_path('assets/duck-right.gif'), format='gif -index %i' % (i)) for i in range(10)]
+        self.moveleft = [tk.PhotoImage(file=get_path('assets/duck-left.gif'), format='gif -index %i' % (i)) for i in
+                         range(10)]
+        self.moveright = [tk.PhotoImage(file=get_path('assets/duck-right.gif'), format='gif -index %i' % (i)) for i in
+                          range(10)]
         self.frame_index = 0  # setting starting frame
         self.img = self.moveleft[self.frame_index]  # starting direction gif
         self.timestamp = time.time()
@@ -35,8 +37,11 @@ class pet:
         self.window.geometry('128x128+{}+{}'.format(str(self.x), str(self.y)))
         self.label.configure(image=self.img)
         self.label.pack()
+        self.stop_flag = False
         self.window.after(0, self.update)
         self.dir = -1  # starting direction
+        self.window.bind('<Motion>', self.stop)
+        self.window.bind('<Double-1>', self.run)
         self.window.mainloop()
 
     def changetime(self, direction):
@@ -56,16 +61,27 @@ class pet:
             direction = self.moveright
         self.changetime(direction)
 
-    def update(self):
-        self.go()
-        if self.x == 0 or self.x == self.window.winfo_screenwidth() - 200:
-            self.changedir()
+    def stop(self, event):
+        # print('stop', self.stop_flag)
+        self.stop_flag = True
 
-        self.window.geometry('128x128+{}+{}'.format(str(self.x), str(self.y)))
-        self.label.configure(image=self.img)
-        self.label.pack()
-        self.window.after(1, self.update)  # 10 is frames number for my gif
-        self.window.lift()
+    def run(self, event):
+        # print('run', self.stop_flag)
+        self.stop_flag = False
+        self.update()
+
+    def update(self):
+        # print('update', self.stop_flag)
+        if self.stop_flag is False:
+            self.go()
+            if self.x == 0 or self.x == self.window.winfo_screenwidth() - 200:
+                self.changedir()
+
+            self.window.geometry('128x128+{}+{}'.format(str(self.x), str(self.y)))
+            self.label.configure(image=self.img)
+            self.label.pack()
+            self.window.after(1, self.update)  # 10 is frames number for my gif
+            self.window.lift()
 
 
 if __name__ == '__main__':
