@@ -18,10 +18,11 @@ class pet:
     def __init__(self):
         self.window = tk.Tk()
         # code below generates string for each frame in gif
+        gif_frame = 10
         self.moveleft = [tk.PhotoImage(file=get_path('assets/duck-left.gif'), format='gif -index %i' % (i)) for i in
-                         range(10)]
+                         range(gif_frame)]
         self.moveright = [tk.PhotoImage(file=get_path('assets/duck-right.gif'), format='gif -index %i' % (i)) for i in
-                          range(10)]
+                          range(gif_frame)]
         self.frame_index = 0  # setting starting frame
         self.img = self.moveleft[self.frame_index]  # starting direction gif
         self.timestamp = time.time()
@@ -39,15 +40,15 @@ class pet:
         self.label.pack()
         self.stop_flag = False
         self.window.after(0, self.update)
-        self.dir = -1  # starting direction
+        self.dir = -2  # starting direction
         self.window.bind('<Motion>', self.stop)
-        self.window.bind('<Double-1>', self.run)
+        self.window.bind('<Leave>', self.run)
         self.window.mainloop()
 
     def changetime(self, direction):
-        if time.time() > self.timestamp + 0.05:
+        if time.time() > self.timestamp + 0.2:
             self.timestamp = time.time()
-            self.frame_index = (self.frame_index + 1) % 5  # speed of frames change
+            self.frame_index = (self.frame_index + 1) % 8  # speed of frames change
             self.img = direction[self.frame_index]
 
     def changedir(self):
@@ -76,11 +77,10 @@ class pet:
             self.go()
             if self.x == 0 or self.x == self.window.winfo_screenwidth() - 200:
                 self.changedir()
-
             self.window.geometry('128x128+{}+{}'.format(str(self.x), str(self.y)))
             self.label.configure(image=self.img)
             self.label.pack()
-            self.window.after(1, self.update)  # 10 is frames number for my gif
+            self.window.after(20, self.update)  # 10 is frames number for my gif
             self.window.lift()
 
 
