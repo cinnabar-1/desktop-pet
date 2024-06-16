@@ -1,3 +1,6 @@
+## lib
+pyinstaller
+
 ## build project 
  - pyinstaller -y --add-data '*.gif;.' .\pet.py
  - pyinstaller -y -i icon.ico --add-data '*.gif;.' .\pet.py
