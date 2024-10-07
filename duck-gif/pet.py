@@ -33,8 +33,10 @@ class pet:
         self.label = tk.Label(self.window, bd=0, bg='black')  # creates a label as a container for a gif
         # starting points
         # get screen width and height to decide to where to start
-        self.x = width = self.window.winfo_screenwidth() - 200
-        self.y = height = self.window.winfo_screenheight() - 100
+        self.x_bound = self.window.winfo_screenwidth() - 100
+        self.y_bound = self.window.winfo_screenheight() - 100
+        self.x = self.x_bound
+        self.y = self.y_bound
         self.window.geometry('128x128+{}+{}'.format(str(self.x), str(self.y)))
         self.label.configure(image=self.img)
         self.label.pack()
@@ -101,10 +103,11 @@ class pet:
     def update(self):
         # stop or go
         print('jumping', self.jumping)
+        print('x:', self.x, 'y:', self.y)
         if not self.jumping:
             if self.stop_flag is False:
                 self.go('x')
-                if self.x == 0 or self.x == self.window.winfo_screenwidth() - 200:
+                if self.x == 0 or self.x == self.x_bound:
                     self.changedir('x')
                 self.window.geometry('128x128+{}+{}'.format(str(self.x), str(self.y)))
                 self.label.configure(image=self.img)
@@ -115,12 +118,12 @@ class pet:
         else:
             self.go('y')
             self.go('x')
-            if self.y <= self.window.winfo_screenheight() - 100 - self.jump_level:
+            if self.y <= self.y_bound - self.jump_level:
                 self.changedir('y')  # when jump to top
-            elif self.y >= self.window.winfo_screenheight() - 100:
+            elif self.y >= self.y_bound:
                 # when fall to floor
                 self.jumping = False
-                self.y = self.window.winfo_screenheight() - 100
+                self.y = self.y_bound
                 self.changedir('y')
             self.window.geometry('128x128+{}+{}'.format(str(self.x), str(self.y)))
             self.label.configure(image=self.img)
