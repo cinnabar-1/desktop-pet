@@ -20,6 +20,7 @@ def init_ssh():
 if __name__ == '__main__':
     ssh, sftp = init_ssh()
     files = sftp.listdir("/app/for_out_file/")
+    sftp.put()
     # sftp.remove()
     # sftp.put(remotepath="/app/sftp.py",localpath="./main.py")
     # download

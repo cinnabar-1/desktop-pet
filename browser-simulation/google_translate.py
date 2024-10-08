@@ -10,10 +10,15 @@ import time
 
 class GoogleDriver:
     def __init__(self):
-        self.service = Service('D:\\lib\\chromedriver-win64\\chromedriver.exe')
+        self.browser_wait = None
+        self.browser = None
+        self.service = None
+
+    def start_browser(self, url, driver="E:\\lib\\chromedriver-win64\\chromedriver.exe"):
+        self.service = Service(driver)
         self.browser = webdriver.Chrome(service=self.service)
         self.browser_wait = WebDriverWait(self.browser, 10)
-        self.browser.get("https://translate.google.com/")
+        self.browser.get(url)
 
     def delay_find(self, by, value, call):
         message = by + " " + value + " not find"
@@ -49,7 +54,7 @@ class GoogleDriver:
         # find_element 0
         translate = self.delay_find(By.CLASS_NAME, "ryNqvb",
                                     lambda by, value: self.browser.find_element(by, value))
-        time.sleep(1)
+        # time.sleep(1)
         try:
             # 展开所有
             self.browser.execute_script(
@@ -93,9 +98,11 @@ def txt_parser():
 
 
 if __name__ == '__main__':
-    words = txt_parser()
+    # words = txt_parser()
+    words = ["browser"]
     print(words)
     browser = GoogleDriver()
+    browser.start_browser("https://translate.google.com/", "E:\\lib\\chromedriver-win64\\chromedriver.exe")
     for word in words:
         browser.get_result(word)
         print("=================================")
