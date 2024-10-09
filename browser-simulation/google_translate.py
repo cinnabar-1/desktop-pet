@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 import time
 
@@ -26,7 +27,22 @@ class GoogleDriver:
                                        message)
         if find:
             # 延时一下执行，判断enable之后立即执行还是不行
-            time.sleep(1)
+            time.sleep(2)
+            return call(by, value)
+        else:
+            raise message
+
+    def delay_click(self, by, value, call):
+        message = by + " " + value + " not find"
+        # 元素可点击
+        clickable = self.browser_wait.until(EC.element_to_be_clickable((by, value)),
+                                            message)
+        # 元素可见
+        visible = self.browser_wait.until(EC.presence_of_element_located((by, value)), message)
+
+        if clickable and visible:
+            # 延时一下执行，判断enable之后立即执行还是不行
+            time.sleep(2)
             return call(by, value)
         else:
             raise message
@@ -41,8 +57,10 @@ class GoogleDriver:
             world)
         # 查字典类
         check_dict = "dWI6ed"
-        self.delay_find(By.CLASS_NAME, check_dict,
-                        lambda by, value: self.browser.find_element(by, value).click())
+        self.delay_click(By.CLASS_NAME, check_dict,
+                         lambda by, value: self.browser.find_element(by, value).click())
+        # 直接的词义
+        direct_means_class = "ryNqvb"
         # 查字典 之后外层的类 包含了词性和含义。需要用这个判断具体的词性包含了哪些含义
         dict_class = "Dwvecf"
         # 词性类
@@ -52,11 +70,11 @@ class GoogleDriver:
         # 含义类
         means_class = "JAk00"
         # find_element 0
-        translate = self.delay_find(By.CLASS_NAME, "ryNqvb",
+        translate = self.delay_find(By.CLASS_NAME, direct_means_class,
                                     lambda by, value: self.browser.find_element(by, value))
         # time.sleep(1)
         try:
-            # 展开所有
+            # 显示全部
             self.browser.execute_script(
                 'document.getElementsByClassName("VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-INsAgc VfPpkd-LgbsSe-OWXEXe-dgl2Hf Rj2Mlf OLiIxf PDpWxe P62QJc LQeN7 VK4HE")[0].click()')
         except Exception:
@@ -98,12 +116,13 @@ def txt_parser():
 
 
 if __name__ == '__main__':
-    # words = txt_parser()
-    words = ["browser"]
+    words = txt_parser()
+    # words = ["browser"]
     print(words)
     browser = GoogleDriver()
-    browser.start_browser("https://translate.google.com/", "E:\\lib\\chromedriver-win64\\chromedriver.exe")
+    browser.start_browser("https://translate.google.com/", "D:\\lib\\chromedriver-win64\\chromedriver.exe")
     for word in words:
+        print(word)
         browser.get_result(word)
         print("=================================")
     browser.close_browser()
