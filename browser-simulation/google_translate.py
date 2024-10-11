@@ -1,8 +1,10 @@
+import os
 import sys
 import traceback
 
 from selenium import webdriver
-from selenium.common import NoSuchElementException, JavascriptException, StaleElementReferenceException
+from selenium.common import NoSuchElementException, JavascriptException, StaleElementReferenceException, \
+    ElementNotInteractableException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -57,12 +59,14 @@ class GoogleDriver:
             try:
                 result = call(by, value)
                 break
-            except StaleElementReferenceException:
+            except (StaleElementReferenceException, ElementNotInteractableException) as e:
+                print(e)
                 traceback.print_exc()
         return result
 
-    def get_result(self, world):
-        print(word)
+    def google_translate(self, world):
+        translate_r = world
+        translate_r += "	"
         # 需要翻译的文字的输入框
         input_class = "er8xn"
         # 直接的词义
@@ -93,8 +97,8 @@ class GoogleDriver:
         #     print(character)
         #     self.actions.send_keys(character).perform()
         #     time.sleep(0.1)  # 增加适当延时以确保下游处理完成
-        # 必须，不然send key 会有问题
-        time.sleep(0.5)
+        # 必须，不然send key 会有问题，sleep久一点，等google翻译将当前的翻译结束，不然可能读取到之前的结果
+        time.sleep(1)
         # find_element 0
         translate_text = self.delay_find(By.CLASS_NAME, direct_means_class,
                                          lambda by, value: self.browser.find_element(by, value).text)
@@ -105,24 +109,35 @@ class GoogleDriver:
             # 显示全部
             self.browser.execute_script(
                 'document.getElementsByClassName("VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-INsAgc VfPpkd-LgbsSe-OWXEXe-dgl2Hf Rj2Mlf OLiIxf PDpWxe P62QJc LQeN7 VK4HE")[0].click()')
-        except NoSuchElementException and JavascriptException:
-            print(sys.exception().__traceback__)
+        except (NoSuchElementException, JavascriptException) as e:
+            print(e)
+            traceback.print_exc()
 
         dict_all = self.delay_find(By.CLASS_NAME, dict_class,
                                    lambda by, value: self.browser.find_element("class name", dict_class))
-        part_of_speech = self.browser.find_element("class name", part_of_speech_class)
-        world_dict = self.browser.find_element("class name", means_class)
+        # part_of_speech = self.browser.find_element("class name", part_of_speech_class)
+        # world_dict = self.browser.find_element("class name", means_class)
         dict_children = dict_all.find_elements(By.XPATH, "./*")
         print(translate_text)
+        translate_r = translate_r + translate_text + "<br>"
         for dict_child in dict_children:
             speech_elements = dict_child.find_elements("class name", part_of_speech_class)
             order_elements = dict_child.find_elements("class name", order_class)
             means_elements = dict_child.find_elements("class name", means_class)
             if len(order_elements) != 0:
-                print(order_elements[0].text, ":", means_elements[0].text)
+                text = order_elements[0].text + ":" + means_elements[0].text
+                print(text)
+                translate_r = translate_r + text + "<br>"
             elif len(speech_elements) != 0:
+                text = speech_elements[0].text
                 print()
-                print(speech_elements[0].text)
+                print(text)
+                translate_r = translate_r + text + "<br>"
+        return translate_r
+
+    def taobao_flash(self):
+        # self.browser.get()
+        buy_button_id = ""
 
     def close_browser(self):
         self.browser.close()
@@ -144,17 +159,38 @@ def txt_parser():
     return word
 
 
-if __name__ == '__main__':
+def append_file(line, file_name="demo.txt"):
+    if os.path.exists(file_name):
+        os.remove(file_name)
+    with open(file_name, "a", encoding='utf-8') as f:
+        f.write(line)
+
+
+def translate_on_google():
     words = txt_parser()
-    # words = ["browser"]
+    # words = ["stipulating"]
     print(words)
+    r = '''#separator:tab
+    #html:true'''
     browser = GoogleDriver()
     browser.start_browser("https://translate.google.com/", "D:\\lib\\chromedriver-win64\\chromedriver.exe")
     try:
         for word in words:
-            browser.get_result(word)
+            r = r + '\n' + browser.google_translate(word).replace('\n', "<br>")
             print("=================================")
-    except Exception:
+    except Exception as e:
+        print(e)
         traceback.print_exc()
         time.sleep(10)
+        exit(1)
+    finally:
+        browser.close_browser()
+    append_file(r)
+
+
+if __name__ == '__main__':
+    # translate_on_google()
+    browser = GoogleDriver()
+    browser.start_browser("https://login.taobao.com/member/login.jhtml",
+                          "D:\\lib\\chromedriver-win64\\chromedriver.exe")
     browser.close_browser()
