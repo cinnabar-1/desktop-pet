@@ -7,23 +7,34 @@ from selenium.common import NoSuchElementException, JavascriptException, StaleEl
     ElementNotInteractableException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import subprocess
 
 import time
 
 
 class GoogleDriver:
     def __init__(self):
+        self.chrome_options = None
         self.actions = None
         self.browser_wait = None
         self.browser = None
         self.service = None
 
     def start_browser(self, url, driver="E:\\lib\\chromedriver-win64\\chromedriver.exe"):
-        self.service = Service(driver)
-        self.browser = webdriver.Chrome(service=self.service)
+        # self.service = Service(driver)
+        # self.browser = webdriver.Chrome(service=self.service)
+
+        # 链接一个已经打开的浏览器，可能可以避免别人知道你用了selenium
+        # 有个问题，由于浏览器不是程序打开的，运行程序时浏览器可能不是最上面的窗口，需要把浏览器放到最上面不然会有问题。
+        # 这里出现过程序启动浏览器连接不上的情况，后来又好了，原因未知
+        start_browser()
+        self.chrome_options = Options()
+        self.chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+        self.browser = webdriver.Chrome(options=self.chrome_options)
         self.browser_wait = WebDriverWait(self.browser, 10)
         self.browser.get(url)
         self.actions = ActionChains(self.browser)
@@ -42,6 +53,8 @@ class GoogleDriver:
 
     def delay_click(self, by, value, call):
         message = by + " " + value + " not find"
+        usable = self.browser_wait.until(lambda driver: driver.find_element(by, value).is_enabled(),
+                                         message)
         # 元素可点击
         usable = self.browser_wait.until(EC.element_to_be_clickable((by, value)),
                                          message)
@@ -81,13 +94,13 @@ class GoogleDriver:
         means_class = "JAk00"
         # 查字典类
         check_dict_class = "dWI6ed"
+        # 等待输入框可用
         input_element = self.delay_click(By.CLASS_NAME, input_class,
                                          lambda by, value: self.browser.find_element(By.CLASS_NAME, input_class))
         # 点击一下
         input_element.click()
         # 先清除一下输入框，直接send是在输入框追加
         input_element.clear()
-        input_element.click()
         # 直接send是在输入框追加，一个一个写，一次写多个可能导致不完整
         for i in world:
             input_element.send_keys(
@@ -167,8 +180,8 @@ def append_file(line, file_name="demo.txt"):
 
 
 def translate_on_google():
-    words = txt_parser()
-    # words = ["stipulating"]
+    # words = txt_parser()
+    words = ["culminating"]
     print(words)
     r = '''#separator:tab
     #html:true'''
@@ -188,9 +201,16 @@ def translate_on_google():
     append_file(r)
 
 
+def start_browser():
+    # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\ChromeProfile"
+    chrome_path = '"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe "'
+    cmd = chrome_path + '--remote-debugging-port=9222 ' + '--user-data-dir="C:\\selenium\\ChromeProfile"'
+    subprocess.Popen(cmd)
+
+
 if __name__ == '__main__':
-    # translate_on_google()
-    browser = GoogleDriver()
-    browser.start_browser("https://login.taobao.com/member/login.jhtml",
-                          "D:\\lib\\chromedriver-win64\\chromedriver.exe")
-    browser.close_browser()
+    translate_on_google()
+    # browser = GoogleDriver()
+    # browser.start_browser("https://login.taobao.com/member/login.jhtml")
+    # time.sleep(100)
+    # browser.close_browser()
