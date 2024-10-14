@@ -25,16 +25,16 @@ class GoogleDriver:
         self.service = None
 
     def start_browser(self, url, driver="E:\\lib\\chromedriver-win64\\chromedriver.exe"):
-        # self.service = Service(driver)
+        self.service = Service(driver)
         # self.browser = webdriver.Chrome(service=self.service)
-
         # 链接一个已经打开的浏览器，可能可以避免别人知道你用了selenium
-        # 有个问题，由于浏览器不是程序打开的，运行程序时浏览器可能不是最上面的窗口，需要把浏览器放到最上面不然会有问题。
-        # 这里出现过程序启动浏览器连接不上的情况，后来又好了，原因未知
+        # 有个问题，如果浏览器不是程序打开的，运行程序时浏览器可能不是最上面的窗口，需要把浏览器放到最上面不然会有问题。
+        # 这里出现过程序启动浏览器连接不上的情况，后来又好了，原因未知--->还是需要传入一个driver，抄代码时网上的代码都不正确
+        #
         start_browser()
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-        self.browser = webdriver.Chrome(options=self.chrome_options)
+        self.browser = webdriver.Chrome(service=self.service, options=self.chrome_options)
         self.browser_wait = WebDriverWait(self.browser, 10)
         self.browser.get(url)
         self.actions = ActionChains(self.browser)
@@ -180,11 +180,11 @@ def append_file(line, file_name="demo.txt"):
 
 
 def translate_on_google():
-    # words = txt_parser()
-    words = ["culminating"]
+    words = txt_parser()
+    # words = ["culminating"]
     print(words)
     r = '''#separator:tab
-    #html:true'''
+#html:true'''
     browser = GoogleDriver()
     browser.start_browser("https://translate.google.com/", "D:\\lib\\chromedriver-win64\\chromedriver.exe")
     try:
@@ -203,7 +203,7 @@ def translate_on_google():
 
 def start_browser():
     # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\ChromeProfile"
-    chrome_path = '"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe "'
+    chrome_path = '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe "'
     cmd = chrome_path + '--remote-debugging-port=9222 ' + '--user-data-dir="C:\\selenium\\ChromeProfile"'
     subprocess.Popen(cmd)
 
