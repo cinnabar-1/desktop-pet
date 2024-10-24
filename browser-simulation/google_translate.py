@@ -151,8 +151,6 @@ class GoogleDriver:
     def taobao_flash(self):
         # self.browser.get()
         buy_button_id = ""
-        self.delay_click(By.CLASS_NAME, check_dict_class,
-                         lambda by, value: self.browser.find_element(by, value).click())
 
     def close_browser(self):
         self.browser.close()
@@ -215,5 +213,6 @@ if __name__ == '__main__':
     browser = GoogleDriver()
     browser.start_browser("https://login.taobao.com/member/login.jhtml")
     time.sleep(10)
-    document.querySelector("ul[role='listbox']").childNodes[1]
+    # document.querySelector("ul[role='listbox']").childNodes[1]
+    browser.browser.find_element(By.CSS_SELECTOR, "ul[role='listbox']").click()
     browser.close_browser()
