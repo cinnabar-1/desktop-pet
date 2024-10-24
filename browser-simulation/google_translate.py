@@ -151,6 +151,8 @@ class GoogleDriver:
     def taobao_flash(self):
         # self.browser.get()
         buy_button_id = ""
+        self.delay_click(By.CLASS_NAME, check_dict_class,
+                         lambda by, value: self.browser.find_element(by, value).click())
 
     def close_browser(self):
         self.browser.close()
@@ -180,13 +182,13 @@ def append_file(line, file_name="demo.txt"):
 
 
 def translate_on_google():
-    words = txt_parser()
-    # words = ["culminating"]
+    # words = txt_parser()
+    words = ["culminating"]
     print(words)
     r = '''#separator:tab
 #html:true'''
     browser = GoogleDriver()
-    browser.start_browser("https://translate.google.com/", "D:\\lib\\chromedriver-win64\\chromedriver.exe")
+    browser.start_browser("https://translate.google.com/")
     try:
         for word in words:
             r = r + '\n' + browser.google_translate(word).replace('\n', "<br>")
@@ -203,14 +205,15 @@ def translate_on_google():
 
 def start_browser():
     # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\ChromeProfile"
-    chrome_path = '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe "'
+    chrome_path = '"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe "'
     cmd = chrome_path + '--remote-debugging-port=9222 ' + '--user-data-dir="C:\\selenium\\ChromeProfile"'
     subprocess.Popen(cmd)
 
 
 if __name__ == '__main__':
-    translate_on_google()
-    # browser = GoogleDriver()
-    # browser.start_browser("https://login.taobao.com/member/login.jhtml")
-    # time.sleep(100)
-    # browser.close_browser()
+    # translate_on_google()
+    browser = GoogleDriver()
+    browser.start_browser("https://login.taobao.com/member/login.jhtml")
+    time.sleep(10)
+    document.querySelector("ul[role='listbox']").childNodes[1]
+    browser.close_browser()
