@@ -35,9 +35,10 @@ class GoogleDriver:
         self.chrome_options = Options()
         self.chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
         self.browser = webdriver.Chrome(service=self.service, options=self.chrome_options)
-        self.browser_wait = WebDriverWait(self.browser, 10)
+        self.browser_wait = WebDriverWait(self.browser, 20)
         self.browser.get(url)
         self.actions = ActionChains(self.browser)
+        print(self.browser.current_url)
 
     def delay_find(self, by, value, call):
         message = by + " " + value + " not find"
@@ -149,8 +150,46 @@ class GoogleDriver:
         return translate_r
 
     def taobao_flash(self):
-        # self.browser.get()
-        buy_button_id = ""
+        time.sleep(20)
+        # document.querySelector("ul[role='listbox']").childNodes[1]
+        # 左侧跳转栏
+        list_box = self.delay_find(By.CSS_SELECTOR, "ul[role='listbox']", lambda x, y: self.browser.find_element(x, y))
+        my_cart = list_box.find_elements(By.XPATH, "./*")[1]
+        my_cart = my_cart.find_elements(By.TAG_NAME, "a")[0]
+        cart_url = my_cart.get_attribute('href')
+        print("cart url %s" % cart_url)
+        cart_url = cart_url.split('?')[0]
+        if my_cart.text != "我的购物车":
+            print("cart not find. system exit")
+            sys.exit(1)
+        print("go to cart")
+        my_cart.click()
+        # 处理页面跳转
+        all_handles = self.browser.window_handles
+        for handle in all_handles:
+            self.browser.switch_to.window(handle)
+            if self.browser.current_url.__contains__(cart_url):
+                break
+        # 全选购物车
+        print(self.browser.current_url)
+        cart_operator_list_id = "cart-operation-fixed"
+        cart_operator_list = self.delay_find(By.ID, "cart-operation-fixed",
+                                             lambda x, y: self.browser.find_element(x, y))
+        select_all = cart_operator_list.find_elements(By.XPATH, "./*")[1]
+        print(select_all.text)
+        # 结算
+        settle_class = 'btn--QDjHtErD'
+        self.delay_find(By.CLASS_NAME, settle_class, lambda x, y: self.browser.find_element(x, y)).click()
+        # 提交订单
+        commit_list_class = "btnBox--p9CumEtE"
+        commit_class_disable = 'btn--QDjHtErD  btn_disabled--kp_s_bi2'
+        commit_class_enable = 'btn--QDjHtErD'
+        commit_list_e = self.browser.find_element(By.CLASS_NAME, commit_list_class)
+        commit_e = commit_list_e[1]
+        if commit_e.text != "提交订单":
+            print("commit button not found. system exit")
+            sys.exit(1)
+        time.sleep(500)
 
     def close_browser(self):
         self.browser.close()
@@ -191,7 +230,7 @@ def translate_on_google():
         for word in words:
             r = r + '\n' + browser.google_translate(word).replace('\n', "<br>")
             print("=================================")
-    except Exception as e:
+    except BaseException as e:
         print(e)
         traceback.print_exc()
         time.sleep(10)
@@ -203,7 +242,8 @@ def translate_on_google():
 
 def start_browser():
     # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\ChromeProfile"
-    chrome_path = '"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe "'
+    # chrome_path = '"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe "'
+    chrome_path = '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"'
     cmd = chrome_path + '--remote-debugging-port=9222 ' + '--user-data-dir="C:\\selenium\\ChromeProfile"'
     subprocess.Popen(cmd)
 
@@ -211,8 +251,7 @@ def start_browser():
 if __name__ == '__main__':
     # translate_on_google()
     browser = GoogleDriver()
-    browser.start_browser("https://login.taobao.com/member/login.jhtml")
-    time.sleep(10)
-    # document.querySelector("ul[role='listbox']").childNodes[1]
-    browser.browser.find_element(By.CSS_SELECTOR, "ul[role='listbox']").click()
+    browser.start_browser("https://login.taobao.com/member/login.jhtml",
+                          "D:\\lib\\chromedriver-win64\\chromedriver.exe")
+    browser.taobao_flash()
     browser.close_browser()
