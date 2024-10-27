@@ -150,33 +150,39 @@ class GoogleDriver:
         return translate_r
 
     def taobao_flash(self):
-        time.sleep(20)
+        cart_url = "https://cart.taobao.com/"
+        time.sleep(10)
         # document.querySelector("ul[role='listbox']").childNodes[1]
-        # 左侧跳转栏
-        list_box = self.delay_find(By.CSS_SELECTOR, "ul[role='listbox']", lambda x, y: self.browser.find_element(x, y))
-        my_cart = list_box.find_elements(By.XPATH, "./*")[1]
-        my_cart = my_cart.find_elements(By.TAG_NAME, "a")[0]
-        cart_url = my_cart.get_attribute('href')
-        print("cart url %s" % cart_url)
-        cart_url = cart_url.split('?')[0]
-        if my_cart.text != "我的购物车":
-            print("cart not find. system exit")
-            sys.exit(1)
-        print("go to cart")
-        my_cart.click()
-        # 处理页面跳转
-        all_handles = self.browser.window_handles
-        for handle in all_handles:
-            self.browser.switch_to.window(handle)
-            if self.browser.current_url.__contains__(cart_url):
-                break
-        # 全选购物车
+        if not self.browser.current_url.__contains__(cart_url):
+            # 左侧跳转栏
+            list_box = self.delay_find(By.CSS_SELECTOR, "ul[role='listbox']",
+                                       lambda x, y: self.browser.find_element(x, y))
+            my_cart = list_box.find_elements(By.XPATH, "./*")[1]
+            my_cart = my_cart.find_elements(By.TAG_NAME, "a")[0]
+            cart_url = my_cart.get_attribute('href')
+            print("cart url %s" % cart_url)
+            cart_url = cart_url.split('?')[0]
+            if my_cart.text != "我的购物车":
+                print("cart not find. system exit")
+                sys.exit(1)
+            print("go to cart")
+            my_cart.click()
+            # 处理页面跳转
+            all_handles = self.browser.window_handles
+            for handle in all_handles:
+                self.browser.switch_to.window(handle)
+                if self.browser.current_url.__contains__(cart_url):
+                    print("now is chart")
+                    break
         print(self.browser.current_url)
+        # 全选购物车
         cart_operator_list_id = "cart-operation-fixed"
         cart_operator_list = self.delay_find(By.ID, "cart-operation-fixed",
                                              lambda x, y: self.browser.find_element(x, y))
-        select_all = cart_operator_list.find_elements(By.XPATH, "./*")[1]
+        select_all = cart_operator_list.find_elements(By.XPATH, "./*")[0]
         print(select_all.text)
+        select_all.click()
+        time.sleep(1)
         # 结算
         settle_class = 'btn--QDjHtErD'
         self.delay_find(By.CLASS_NAME, settle_class, lambda x, y: self.browser.find_element(x, y)).click()
@@ -184,11 +190,20 @@ class GoogleDriver:
         commit_list_class = "btnBox--p9CumEtE"
         commit_class_disable = 'btn--QDjHtErD  btn_disabled--kp_s_bi2'
         commit_class_enable = 'btn--QDjHtErD'
-        commit_list_e = self.browser.find_element(By.CLASS_NAME, commit_list_class)
-        commit_e = commit_list_e[1]
+        commit_list_e = self.delay_find(By.CLASS_NAME, commit_list_class, lambda x, y: self.browser.find_element(x, y))
+        commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
         if commit_e.text != "提交订单":
             print("commit button not found. system exit")
             sys.exit(1)
+        while True:
+            commit_class_current = commit_e.get_attribute('class')
+            if commit_class_current == commit_class_enable:
+                break
+            print(commit_class_current)
+            print(time.time_ns())
+        commit_e.click()
+        time.clock()
+        print("commit")
         time.sleep(500)
 
     def close_browser(self):
@@ -240,18 +255,35 @@ def translate_on_google():
     append_file(r)
 
 
-def start_browser():
-    # chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenium\ChromeProfile"
-    # chrome_path = '"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe "'
+chrome_path = str()
+
+driver = str()
+
+
+def home_conf():
+    global chrome_path, driver
+    chrome_path = '"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe "'
+    driver = "E:\\lib\\chromedriver-win64\\chromedriver.exe"
+
+
+def company_conf():
+    global chrome_path, driver
     chrome_path = '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"'
+    driver = "D:\\lib\\chromedriver-win64\\chromedriver.exe"
+
+
+def start_browser():
+    # chrome_path = '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"'
     cmd = chrome_path + '--remote-debugging-port=9222 ' + '--user-data-dir="C:\\selenium\\ChromeProfile"'
     subprocess.Popen(cmd)
 
 
 if __name__ == '__main__':
+    home_conf()
     # translate_on_google()
     browser = GoogleDriver()
-    browser.start_browser("https://login.taobao.com/member/login.jhtml",
-                          "D:\\lib\\chromedriver-win64\\chromedriver.exe")
+    # 第一次进淘宝登录页，后续可以直接进购物车。如果还进登录页，可能会进不去
+    browser.start_browser("https://cart.taobao.com/",
+                          driver)
     browser.taobao_flash()
     browser.close_browser()
