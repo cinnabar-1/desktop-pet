@@ -12,6 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import subprocess
+import datetime
 
 import time
 
@@ -149,7 +150,7 @@ class GoogleDriver:
                 translate_r = translate_r + text + "<br>"
         return translate_r
 
-    def taobao_flash(self):
+    def taobao_flash(self, flash_time):
         cart_url = "https://cart.taobao.com/"
         time.sleep(10)
         # document.querySelector("ul[role='listbox']").childNodes[1]
@@ -175,35 +176,54 @@ class GoogleDriver:
                     print("now is chart")
                     break
         print(self.browser.current_url)
-        # 全选购物车
-        cart_operator_list_id = "cart-operation-fixed"
-        cart_operator_list = self.delay_find(By.ID, "cart-operation-fixed",
-                                             lambda x, y: self.browser.find_element(x, y))
-        select_all = cart_operator_list.find_elements(By.XPATH, "./*")[0]
-        print(select_all.text)
-        select_all.click()
-        time.sleep(1)
-        # 结算
-        settle_class = 'btn--QDjHtErD'
-        self.delay_find(By.CLASS_NAME, settle_class, lambda x, y: self.browser.find_element(x, y)).click()
-        # 提交订单
-        commit_list_class = "btnBox--p9CumEtE"
-        commit_class_disable = 'btn--QDjHtErD  btn_disabled--kp_s_bi2'
-        commit_class_enable = 'btn--QDjHtErD'
-        commit_list_e = self.delay_find(By.CLASS_NAME, commit_list_class, lambda x, y: self.browser.find_element(x, y))
-        commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
-        if commit_e.text != "提交订单":
-            print("commit button not found. system exit")
-            sys.exit(1)
-        while True:
-            commit_class_current = commit_e.get_attribute('class')
-            if commit_class_current == commit_class_enable:
-                break
-            print(commit_class_current)
-            print(time.time_ns())
-        commit_e.click()
-        time.clock()
-        print("commit")
+        committed_order = False
+        while not committed_order:
+            cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            # 疯狂检查时间
+            if flash_time < cur_time:
+                # 全选购物车
+                cart_operator_list_id = "cart-operation-fixed"
+                cart_operator_list = self.delay_find(By.ID, "cart-operation-fixed",
+                                                     lambda x, y: self.browser.find_element(x, y))
+                select_all = cart_operator_list.find_elements(By.XPATH, "./*")[0]
+                print(select_all.text)
+                select_all.click()
+                # 疯狂点击结算
+                while True:
+                    try:
+                        # 结算
+                        settle_class = 'btn--QDjHtErD'
+                        # 点击结算按钮
+                        self.delay_find(By.CLASS_NAME, settle_class,
+                                        lambda x, y: self.browser.find_element(x, y)).click()
+                        break
+                    except:
+                        print("结算按钮不可点击")
+                # 疯狂点击提交订单
+                while True:
+                    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+                    try:
+                        # 提交订单
+                        commit_list_class = "btnBox--p9CumEtE"
+                        commit_class_disable = 'btn--QDjHtErD  btn_disabled--kp_s_bi2'
+                        commit_class_enable = 'btn--QDjHtErD'
+                        commit_list_e = self.delay_find(By.CLASS_NAME, commit_list_class,
+                                                        lambda x, y: self.browser.find_element(x, y))
+                        commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
+                        if commit_e.text != "提交订单":
+                            print("commit button not found. system exit")
+                        commit_class_current = commit_e.get_attribute('class')
+                        # if commit_class_current == commit_class_enable:
+                        print(commit_class_current)
+                        commit_e.click()
+                        print("commit")
+                        print(f"commit success {now}")
+                        committed_order = True
+                        break
+                    except:
+                        print(now)
+                        print('try commit order')
+            time.sleep(0.001)  # 1ms循环
         time.sleep(500)
 
     def close_browser(self):
@@ -279,11 +299,14 @@ def start_browser():
 
 
 if __name__ == '__main__':
-    home_conf()
+    cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+    flash_time = input(f"请输入抢购时间，格式如 {cur_time} :\n")
+    # home_conf()
+    company_conf()
     # translate_on_google()
     browser = GoogleDriver()
     # 第一次进淘宝登录页，后续可以直接进购物车。如果还进登录页，可能会进不去
     browser.start_browser("https://cart.taobao.com/",
                           driver)
-    browser.taobao_flash()
+    browser.taobao_flash(flash_time)
     browser.close_browser()
