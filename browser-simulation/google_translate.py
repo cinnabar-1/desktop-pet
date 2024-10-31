@@ -177,17 +177,17 @@ class GoogleDriver:
                     break
         print(self.browser.current_url)
         committed_order = False
+        # 全选购物车
+        cart_operator_list_id = "cart-operation-fixed"
+        cart_operator_list = self.delay_find(By.ID, "cart-operation-fixed",
+                                             lambda x, y: self.browser.find_element(x, y))
+        select_all = cart_operator_list.find_elements(By.XPATH, "./*")[0]
+        print(select_all.text)
+        select_all.click()
         while not committed_order:
             cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
             # 疯狂检查时间
             if flash_time < cur_time:
-                # 全选购物车
-                cart_operator_list_id = "cart-operation-fixed"
-                cart_operator_list = self.delay_find(By.ID, "cart-operation-fixed",
-                                                     lambda x, y: self.browser.find_element(x, y))
-                select_all = cart_operator_list.find_elements(By.XPATH, "./*")[0]
-                print(select_all.text)
-                select_all.click()
                 # 疯狂点击结算
                 while True:
                     try:
@@ -197,11 +197,11 @@ class GoogleDriver:
                         self.delay_find(By.CLASS_NAME, settle_class,
                                         lambda x, y: self.browser.find_element(x, y)).click()
                         break
-                    except:
+                    except BaseException as e:
+                        print(e)
                         print("结算按钮不可点击")
                 # 疯狂点击提交订单
                 while True:
-                    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
                     try:
                         # 提交订单
                         commit_list_class = "btnBox--p9CumEtE"
@@ -211,17 +211,18 @@ class GoogleDriver:
                                                         lambda x, y: self.browser.find_element(x, y))
                         commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
                         if commit_e.text != "提交订单":
-                            print("commit button not found. system exit")
+                            print("commit button not found.")
                         commit_class_current = commit_e.get_attribute('class')
                         # if commit_class_current == commit_class_enable:
                         print(commit_class_current)
                         commit_e.click()
                         print("commit")
-                        print(f"commit success {now}")
+                        print(f"commit success {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}")
                         committed_order = True
                         break
-                    except:
-                        print(now)
+                    except BaseException as e:
+                        print(e)
+                        print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
                         print('try commit order')
             time.sleep(0.001)  # 1ms循环
         time.sleep(500)
@@ -300,9 +301,10 @@ def start_browser():
 
 if __name__ == '__main__':
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-    flash_time = input(f"请输入抢购时间，格式如 {cur_time} :\n")
-    # home_conf()
-    company_conf()
+    # flash_time = input(f"请输入抢购时间，格式如 {cur_time} :\n")
+    home_conf()
+    flash_time = '2024-10-31 20:00:00.00000'
+    # company_conf()
     # translate_on_google()
     browser = GoogleDriver()
     # 第一次进淘宝登录页，后续可以直接进购物车。如果还进登录页，可能会进不去
