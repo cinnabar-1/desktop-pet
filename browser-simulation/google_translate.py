@@ -1,5 +1,4 @@
 import os
-import sys
 import traceback
 
 from selenium import webdriver
@@ -26,20 +25,28 @@ class GoogleDriver:
         self.service = None
 
     def start_browser(self, url, driver="E:\\lib\\chromedriver-win64\\chromedriver.exe"):
-        self.service = Service(driver)
-        # self.browser = webdriver.Chrome(service=self.service)
         # 链接一个已经打开的浏览器，可能可以避免别人知道你用了selenium
         # 有个问题，如果浏览器不是程序打开的，运行程序时浏览器可能不是最上面的窗口，需要把浏览器放到最上面不然会有问题。
         # 这里出现过程序启动浏览器连接不上的情况，后来又好了，原因未知--->还是需要传入一个driver，抄代码时网上的代码都不正确
-        #
-        start_browser()
-        self.chrome_options = Options()
-        self.chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-        self.browser = webdriver.Chrome(service=self.service, options=self.chrome_options)
+        self.connect_to_browser(False)
         self.browser_wait = WebDriverWait(self.browser, 20)
         self.browser.get(url)
         self.actions = ActionChains(self.browser)
         print(self.browser.current_url)
+
+    def connect_to_browser(self, connect, driver=None):
+        if connect:
+            # 链接一个已经打开的浏览器，可能可以避免别人知道你用了selenium
+            # 有个问题，如果浏览器不是程序打开的，运行程序时浏览器可能不是最上面的窗口，需要把浏览器放到最上面不然会有问题。
+            # 这里出现过程序启动浏览器连接不上的情况，后来又好了，原因未知--->还是需要传入一个driver，抄代码时网上的代码都不正确
+            start_browser()
+            self.chrome_options = Options()
+            self.chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+            self.browser = webdriver.Chrome(service=self.service, options=self.chrome_options)
+        else:
+            # 直接使用webdriver
+            self.service = Service(driver)
+            self.browser = webdriver.Chrome(service=self.service)
 
     def delay_find(self, by, value, call):
         message = by + " " + value + " not find"
@@ -152,29 +159,29 @@ class GoogleDriver:
 
     def taobao_flash(self, flash_time):
         cart_url = "https://cart.taobao.com/"
-        time.sleep(10)
+        # time.sleep(10)
         # document.querySelector("ul[role='listbox']").childNodes[1]
-        if not self.browser.current_url.__contains__(cart_url):
-            # 左侧跳转栏
-            list_box = self.delay_find(By.CSS_SELECTOR, "ul[role='listbox']",
-                                       lambda x, y: self.browser.find_element(x, y))
-            my_cart = list_box.find_elements(By.XPATH, "./*")[1]
-            my_cart = my_cart.find_elements(By.TAG_NAME, "a")[0]
-            cart_url = my_cart.get_attribute('href')
-            print("cart url %s" % cart_url)
-            cart_url = cart_url.split('?')[0]
-            if my_cart.text != "我的购物车":
-                print("cart not find. system exit")
-                sys.exit(1)
-            print("go to cart")
-            my_cart.click()
-            # 处理页面跳转
-            all_handles = self.browser.window_handles
-            for handle in all_handles:
-                self.browser.switch_to.window(handle)
-                if self.browser.current_url.__contains__(cart_url):
-                    print("now is chart")
-                    break
+        # if not self.browser.current_url.__contains__(cart_url):
+        #     # 左侧跳转栏
+        #     list_box = self.delay_find(By.CSS_SELECTOR, "ul[role='listbox']",
+        #                                lambda x, y: self.browser.find_element(x, y))
+        #     my_cart = list_box.find_elements(By.XPATH, "./*")[1]
+        #     my_cart = my_cart.find_elements(By.TAG_NAME, "a")[0]
+        #     cart_url = my_cart.get_attribute('href')
+        #     print("cart url %s" % cart_url)
+        #     cart_url = cart_url.split('?')[0]
+        #     if my_cart.text != "我的购物车":
+        #         print("cart not find. system exit")
+        #         sys.exit(1)
+        #     print("go to cart")
+        #     my_cart.click()
+        #     # 处理页面跳转
+        #     all_handles = self.browser.window_handles
+        #     for handle in all_handles:
+        #         self.browser.switch_to.window(handle)
+        #         if self.browser.current_url.__contains__(cart_url):
+        #             print("now is chart")
+        #             break
         print(self.browser.current_url)
         committed_order = False
         # 全选购物车
@@ -194,8 +201,9 @@ class GoogleDriver:
                         # 结算
                         settle_class = 'btn--QDjHtErD'
                         # 点击结算按钮
-                        self.delay_find(By.CLASS_NAME, settle_class,
-                                        lambda x, y: self.browser.find_element(x, y)).click()
+                        # self.delay_find(By.CLASS_NAME, settle_class,
+                        #                 lambda x, y: self.browser.find_element(x, y)).click()
+                        self.browser.find_element(By.CLASS_NAME, settle_class).click()
                         break
                     except BaseException as e:
                         print(e)
@@ -207,15 +215,12 @@ class GoogleDriver:
                         commit_list_class = "btnBox--p9CumEtE"
                         commit_class_disable = 'btn--QDjHtErD  btn_disabled--kp_s_bi2'
                         commit_class_enable = 'btn--QDjHtErD'
-                        commit_list_e = self.delay_find(By.CLASS_NAME, commit_list_class,
-                                                        lambda x, y: self.browser.find_element(x, y))
+                        # commit_list_e = self.delay_find(By.CLASS_NAME, commit_list_class,
+                        #                                 lambda x, y: self.browser.find_element(x, y))
+                        commit_list_e = self.browser.find_element(By.CLASS_NAME, commit_list_class)
                         commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
-                        if commit_e.text != "提交订单":
-                            print("commit button not found.")
-                        commit_class_current = commit_e.get_attribute('class')
-                        # if commit_class_current == commit_class_enable:
-                        print(commit_class_current)
-                        commit_e.click()
+                        # commit_e = self.browser.find_element(By.LINK_TEXT, '提交订单')
+                        # commit_e.click()
                         print("commit")
                         print(f"commit success {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}")
                         committed_order = True
@@ -225,7 +230,7 @@ class GoogleDriver:
                         print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
                         print('try commit order')
             time.sleep(0.001)  # 1ms循环
-        time.sleep(500)
+        time.sleep(1000)
 
     def close_browser(self):
         self.browser.close()
@@ -303,12 +308,16 @@ if __name__ == '__main__':
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
     # flash_time = input(f"请输入抢购时间，格式如 {cur_time} :\n")
     home_conf()
-    flash_time = '2024-10-31 20:00:00.00000'
+    # flash_time = '2024-10-31 20:00:00.00000'
+    flash_time = '2024-10-31 23:48:00.00000'
     # company_conf()
     # translate_on_google()
     browser = GoogleDriver()
-    # 第一次进淘宝登录页，后续可以直接进购物车。如果还进登录页，可能会进不去
-    browser.start_browser("https://cart.taobao.com/",
-                          driver)
-    browser.taobao_flash(flash_time)
-    browser.close_browser()
+    try:
+        # 第一次进淘宝登录页，后续可以直接进购物车。如果还进登录页，可能会进不去
+        browser.start_browser("https://cart.taobao.com/",
+                              driver)
+        browser.taobao_flash(flash_time)
+        browser.close_browser()
+    finally:
+        browser.close_browser()
