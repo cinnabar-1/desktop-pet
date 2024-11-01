@@ -7,6 +7,7 @@ from selenium.common import NoSuchElementException, JavascriptException, StaleEl
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -28,18 +29,19 @@ class GoogleDriver:
         # 链接一个已经打开的浏览器，可能可以避免别人知道你用了selenium
         # 有个问题，如果浏览器不是程序打开的，运行程序时浏览器可能不是最上面的窗口，需要把浏览器放到最上面不然会有问题。
         # 这里出现过程序启动浏览器连接不上的情况，后来又好了，原因未知--->还是需要传入一个driver，抄代码时网上的代码都不正确
-        self.connect_to_browser(False)
-        self.browser_wait = WebDriverWait(self.browser, 20)
+        self.browser = self.connect_to_browser(True, driver)
+        self.browser_wait = WebDriverWait(self.browser, 10)
         self.browser.get(url)
         self.actions = ActionChains(self.browser)
         print(self.browser.current_url)
 
-    def connect_to_browser(self, connect, driver=None):
+    def connect_to_browser(self, connect, driver=None) -> WebDriver:
         if connect:
             # 链接一个已经打开的浏览器，可能可以避免别人知道你用了selenium
             # 有个问题，如果浏览器不是程序打开的，运行程序时浏览器可能不是最上面的窗口，需要把浏览器放到最上面不然会有问题。
             # 这里出现过程序启动浏览器连接不上的情况，后来又好了，原因未知--->还是需要传入一个driver，抄代码时网上的代码都不正确
             start_browser()
+            self.service = Service(driver)
             self.chrome_options = Options()
             self.chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
             self.browser = webdriver.Chrome(service=self.service, options=self.chrome_options)
@@ -47,6 +49,7 @@ class GoogleDriver:
             # 直接使用webdriver
             self.service = Service(driver)
             self.browser = webdriver.Chrome(service=self.service)
+        return self.browser
 
     def delay_find(self, by, value, call):
         message = by + " " + value + " not find"
@@ -220,7 +223,7 @@ class GoogleDriver:
                         commit_list_e = self.browser.find_element(By.CLASS_NAME, commit_list_class)
                         commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
                         # commit_e = self.browser.find_element(By.LINK_TEXT, '提交订单')
-                        # commit_e.click()
+                        commit_e.click()
                         print("commit")
                         print(f"commit success {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}")
                         committed_order = True
@@ -229,7 +232,7 @@ class GoogleDriver:
                         print(e)
                         print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
                         print('try commit order')
-            time.sleep(0.001)  # 1ms循环
+            # time.sleep(0.001)  # 1ms循环
         time.sleep(1000)
 
     def close_browser(self):
@@ -307,10 +310,10 @@ def start_browser():
 if __name__ == '__main__':
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
     # flash_time = input(f"请输入抢购时间，格式如 {cur_time} :\n")
-    home_conf()
-    # flash_time = '2024-10-31 20:00:00.00000'
-    flash_time = '2024-10-31 23:48:00.00000'
-    # company_conf()
+    # home_conf()
+    company_conf()
+    flash_time = '2024-11-01 20:00:00.00000'
+    # flash_time = '2024-11-01 19:59:59.50000'
     # translate_on_google()
     browser = GoogleDriver()
     try:
