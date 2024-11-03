@@ -161,6 +161,11 @@ class GoogleDriver:
         return translate_r
 
     def taobao_flash(self, flash_time):
+        # 修改提交按钮，让提交按钮可点击
+        change_commit_button = lambda element, class_attribute: {
+            self.browser.execute_script("arguments[0].setAttribute(arguments[1], arguments[2])", element, 'class',
+                                        class_attribute)
+        }
         cart_url = "https://cart.taobao.com/"
         # time.sleep(10)
         # document.querySelector("ul[role='listbox']").childNodes[1]
@@ -191,6 +196,7 @@ class GoogleDriver:
         cart_operator_list_id = "cart-operation-fixed"
         cart_operator_list = self.delay_find(By.ID, "cart-operation-fixed",
                                              lambda x, y: self.browser.find_element(x, y))
+        cart_operator_list = self.browser.find_element(By.ID, "cart-operation-fixed")
         select_all = cart_operator_list.find_elements(By.XPATH, "./*")[0]
         print(select_all.text)
         select_all.click()
@@ -214,17 +220,22 @@ class GoogleDriver:
                 # 疯狂点击提交订单
                 while True:
                     try:
+                        print(f"start try commit order {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}")
                         # 提交订单
                         commit_list_class = "btnBox--p9CumEtE"
+                        commit_xpath = '//*[@id="submitOrder"]/div/div[2]/div'
+                        commit_xpath_full = ('/html/body/div[4]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/div['
+                                             '1]/div[3]/div/div[2]/div')
                         commit_class_disable = 'btn--QDjHtErD  btn_disabled--kp_s_bi2'
                         commit_class_enable = 'btn--QDjHtErD'
                         # commit_list_e = self.delay_find(By.CLASS_NAME, commit_list_class,
                         #                                 lambda x, y: self.browser.find_element(x, y))
-                        commit_list_e = self.browser.find_element(By.CLASS_NAME, commit_list_class)
-                        commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
-                        # commit_e = self.browser.find_element(By.LINK_TEXT, '提交订单')
+                        # commit_list_e = self.browser.find_element(By.CLASS_NAME, commit_list_class)
+                        # commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
+                        commit_e = self.browser.find_element(By.XPATH, commit_xpath_full)
+                        # commit_e = self.delay_find(By.XPATH, commit_xpath, lambda x, y: self.browser.find_element(x, y))
+                        # change_commit_button(commit_e, commit_class_enable)
                         commit_e.click()
-                        print("commit")
                         print(f"commit success {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}")
                         committed_order = True
                         break
@@ -310,10 +321,10 @@ def start_browser():
 if __name__ == '__main__':
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
     # flash_time = input(f"请输入抢购时间，格式如 {cur_time} :\n")
-    # home_conf()
-    company_conf()
-    flash_time = '2024-11-01 20:00:00.00000'
-    # flash_time = '2024-11-01 19:59:59.50000'
+    home_conf()
+    # company_conf()
+    # flash_time = '2024-11-01 20:00:00.00000'
+    flash_time = '2024-11-03 19:59:59.70000'
     # translate_on_google()
     browser = GoogleDriver()
     try:
