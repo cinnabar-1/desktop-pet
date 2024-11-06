@@ -224,18 +224,11 @@ class GoogleDriver:
                         # 提交订单
                         commit_list_class = "btnBox--p9CumEtE"
                         commit_xpath = '//*[@id="submitOrder"]/div/div[2]/div'
-                        commit_xpath_full = ('/html/body/div[4]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/div['
-                                             '1]/div[3]/div/div[2]/div')
-                        commit_class_disable = 'btn--QDjHtErD  btn_disabled--kp_s_bi2'
-                        commit_class_enable = 'btn--QDjHtErD'
-                        # commit_list_e = self.delay_find(By.CLASS_NAME, commit_list_class,
-                        #                                 lambda x, y: self.browser.find_element(x, y))
-                        # commit_list_e = self.browser.find_element(By.CLASS_NAME, commit_list_class)
-                        # commit_e = commit_list_e.find_elements(By.XPATH, "./*")[1]
-                        commit_e = self.browser.find_element(By.XPATH, commit_xpath_full)
+                        # full xpath 不太准确
+                        commit_e = self.browser.find_element(By.XPATH, commit_xpath)
                         # commit_e = self.delay_find(By.XPATH, commit_xpath, lambda x, y: self.browser.find_element(x, y))
                         # change_commit_button(commit_e, commit_class_enable)
-                        commit_e.click()
+                        # commit_e.click()
                         print(f"commit success {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}")
                         committed_order = True
                         break
@@ -324,7 +317,7 @@ if __name__ == '__main__':
     home_conf()
     # company_conf()
     # flash_time = '2024-11-01 20:00:00.00000'
-    flash_time = '2024-11-03 19:59:59.70000'
+    flash_time = '2024-11-06 23:50:59.50000'
     # translate_on_google()
     browser = GoogleDriver()
     try:
