@@ -135,6 +135,7 @@ class GoogleDriver:
                         # 点击提交
                         commit_e.click()
                         print(f"commit success {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}")
+                        # todo 下次打开控制台观察结果，现在会提示接口调用异常
                         committed_order = True
                         break
                     except BaseException as e:
