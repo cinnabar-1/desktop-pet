@@ -267,8 +267,8 @@ def append_file(line, file_name="demo.txt"):
 
 
 def translate_on_google():
-    # words = txt_parser()
-    words = ["culminating"]
+    words = txt_parser()
+    # words = ["culminating"]
     print(words)
     r = '''#separator:tab
 #html:true'''
@@ -313,20 +313,7 @@ def start_browser():
 
 if __name__ == '__main__':
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-    # flash_time = input(f"请输入抢购时间，格式如 {cur_time} :\n")
-    home_conf()
-    # company_conf()
-    # flash_time = '2024-11-01 20:00:00.00000'
-    flash_day = datetime.datetime.now().strftime('%Y-%m-%d')
-    flash_clock = ' 20:00:00.00000'
-    flash_time = flash_day + flash_clock
-    # translate_on_google()
-    browser = GoogleDriver()
-    try:
-        # 第一次进淘宝登录页，后续可以直接进购物车。如果还进登录页，可能会进不去
-        browser.start_browser("https://cart.taobao.com/",
-                              driver)
-        browser.taobao_flash(flash_time)
-        browser.close_browser()
-    finally:
-        browser.close_browser()
+    print(cur_time)
+    # home_conf()
+    company_conf()
+    translate_on_google()
