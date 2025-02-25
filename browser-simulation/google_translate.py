@@ -16,6 +16,10 @@ import datetime
 
 import time
 
+chrome_path = str()
+
+driver = str()
+
 
 class GoogleDriver:
     def __init__(self):
@@ -273,7 +277,7 @@ def translate_on_google():
     r = '''#separator:tab
 #html:true'''
     browser = GoogleDriver()
-    browser.start_browser("https://translate.google.com/")
+    browser.start_browser("https://translate.google.com/", driver)
     try:
         for word in words:
             r = r + '\n' + browser.google_translate(word).replace('\n', "<br>")
@@ -286,11 +290,6 @@ def translate_on_google():
     finally:
         browser.close_browser()
     append_file(r)
-
-
-chrome_path = str()
-
-driver = str()
 
 
 def home_conf():
