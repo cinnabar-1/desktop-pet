@@ -1,3 +1,4 @@
+# utf-8
 import os
 import traceback
 
@@ -10,7 +11,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions
 import subprocess
 import datetime
 
@@ -60,7 +61,8 @@ class GoogleDriver:
         usable = self.browser_wait.until(lambda driver: driver.find_element(by, value).is_enabled(),
                                          message)
         # 元素可见
-        usable = self.browser_wait.until(EC.presence_of_element_located((by, value)), message) and usable
+        usable = self.browser_wait.until(expected_conditions.presence_of_element_located((by, value)),
+                                         message) and usable
 
         if usable:
             return self.try_find_element(call, by, value)
@@ -72,10 +74,11 @@ class GoogleDriver:
         usable = self.browser_wait.until(lambda driver: driver.find_element(by, value).is_enabled(),
                                          message)
         # 元素可点击
-        usable = self.browser_wait.until(EC.element_to_be_clickable((by, value)),
+        usable = self.browser_wait.until(expected_conditions.element_to_be_clickable((by, value)),
                                          message)
         # 元素可见
-        usable = self.browser_wait.until(EC.presence_of_element_located((by, value)), message) and usable
+        usable = self.browser_wait.until(expected_conditions.presence_of_element_located((by, value)),
+                                         message) and usable
 
         if usable:
             return self.try_find_element(call, by, value)
@@ -119,16 +122,17 @@ class GoogleDriver:
         input_element.clear()
         # 直接send是在输入框追加，一个一个写，一次写多个可能导致不完整
         for i in world:
-            input_element.send_keys(
-                i)
+            input_element.send_keys(i)
         # ActionChains操作当前聚焦（点击）的元素
         # for character in world:  # 在 world 是一个字符串的情况下
         #     print(character)
         #     self.actions.send_keys(character).perform()
         #     time.sleep(0.1)  # 增加适当延时以确保下游处理完成
+
         # 必须，不然send key 会有问题，sleep久一点，等google翻译将当前的翻译结束，不然可能读取到之前的结果
         time.sleep(1)
         # find_element 0
+        # 直接的词义
         translate_text = self.delay_find(By.CLASS_NAME, direct_means_class,
                                          lambda by, value: self.browser.find_element(by, value).text)
         # 查字典
@@ -142,26 +146,57 @@ class GoogleDriver:
             print(e)
             traceback.print_exc()
 
+        # 整个字典元素（子元素为各种不同的词义）
         dict_all = self.delay_find(By.CLASS_NAME, dict_class,
                                    lambda by, value: self.browser.find_element("class name", dict_class))
-        # part_of_speech = self.browser.find_element("class name", part_of_speech_class)
-        # world_dict = self.browser.find_element("class name", means_class)
         dict_children = dict_all.find_elements(By.XPATH, "./*")
-        print(translate_text)
+        print("words translate: %s" % translate_text)
         translate_r = translate_r + translate_text + "<br>"
         for dict_child in dict_children:
+            # 词性
             speech_elements = dict_child.find_elements("class name", part_of_speech_class)
+            # 序号
             order_elements = dict_child.find_elements("class name", order_class)
+            # 词义整个大元素
             means_elements = dict_child.find_elements("class name", means_class)
-            if len(order_elements) != 0:
-                text = order_elements[0].text + ":" + means_elements[0].text
-                print(text)
-                translate_r = translate_r + text + "<br>"
-            elif len(speech_elements) != 0:
+            if len(speech_elements) != 0:
                 text = speech_elements[0].text
-                print()
-                print(text)
+                print("speech: %s" % text)
                 translate_r = translate_r + text + "<br>"
+            if len(order_elements) != 0:
+                text = order_elements[0].text + ":"
+                print("order: %s" % text)
+                translate_r = translate_r + text
+            if len(means_elements) != 0:
+                means_children = means_elements[0].find_elements(By.XPATH, "./*")
+                # 词义-英文解释
+                if len(means_children) > 0:
+                    text = means_children[0].text
+                    translate_r = translate_r + text
+                    print("means: %s" % text)
+                # 词义-例句
+                if len(means_children) > 1:
+                    text = means_children[1].text
+                    translate_r = translate_r + text
+                    print("example: %s" % text)
+                # 词义-字面量
+                if len(means_children) > 2:
+                    text = means_children[2].text
+                    translate_r = translate_r + text
+                    print("words: %s" % text)
+                # 词义-近义词
+                if len(means_children) > 3:
+                    synonyms_children = means_children[3]
+                    synonyms_children_li = synonyms_children.find_elements(By.TAG_NAME, 'li')
+                    for e in synonyms_children_li:
+                        translate_r += e.text + ','
+                        print("relate : %s" % e.text)
+                    # text = means_children[3].text
+                    # translate_r = translate_r + text
+
+                text = means_elements[0].text
+                print("means: %s" % text)
+                translate_r = translate_r + "<br>"
         return translate_r
 
     def taobao_flash(self, flash_time):
@@ -311,6 +346,8 @@ def start_browser():
 
 
 if __name__ == '__main__':
+    # 执行的时候窗口必须在上面，不然会有异常
+    # when you execute this program this browser's window must on the top otherwise there will be some exception
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
     print(cur_time)
     # home_conf()
