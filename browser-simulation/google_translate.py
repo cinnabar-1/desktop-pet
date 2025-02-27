@@ -177,7 +177,7 @@ class GoogleDriver:
                 # 词义-例句
                 if len(means_children) > 1:
                     text = means_children[1].text
-                    translate_r = translate_r + text
+                    translate_r = translate_r + "<br>example: <br>" + text
                     print("example: %s" % text)
                 # 词义-字面量
                 if len(means_children) > 2:
